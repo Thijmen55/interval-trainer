@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interval Trainer</title>
+<style>
+  body { margin:0; font-family: Arial,sans-serif; background:#111; color:#fff; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+  h1 { font-size:36px; margin-bottom:10px; }
+  #phase { font-size:60px; margin:20px; }
+  #timer { font-size:80px; margin:20px; }
+  input, button { font-size:18px; padding:10px; margin:5px; border-radius:8px; border:none; }
+  button { background:#ff3b30; color:white; cursor:pointer; }
+  button:active { background:#ff1c0f; }
+</style>
+</head>
+<body>
+
+<h1>Interval Trainer</h1>
+
+<div>
+  <label>Sprint (sec): <input id="sprint" type="number" value="15"></label><br>
+  <label>Jog (sec): <input id="jog" type="number" value="60"></label><br>
+  <label>Walk (sec): <input id="walk" type="number" value="45"></label><br>
+  <label>Rondes: <input id="rounds" type="number" value="8"></label>
+</div>
+
+<div id="phase">Ready?</div>
+<div id="timer">00</div>
+
+<button onclick="start()">Start</button>
+<button onclick="reset()">Reset</button>
+
+<audio id="beep">
+  <source src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+let intervals = [];
+let current = 0;
+let timeLeft = 0;
+let running = false;
+let totalRounds = 0;
+let roundCount = 0;
+let timer;
+
+function start() {
+  if (running) return;
+
+  // haal tijden van de inputs
+  intervals = [
+    { name: "SPRINT", duration: parseInt(document.getElementById("sprint").value) },
+    { name: "JOG", duration: parseInt(document.getElementById("jog").value) },
+    { name: "WALK", duration: parseInt(document.getElementById("walk").value) }
+  ];
+  totalRounds = parseInt(document.getElementById("rounds").value);
+  current = 0;
+  timeLeft = intervals[0].duration;
+  roundCount = 1;
+  running = true;
+  playBeep();
+  runTimer();
+}
+
+function runTimer() {
+  timer = setInterval(() => {
+    if (!running) return;
+
+    document.getElementById("phase").innerText = intervals[current].name;
+    document.getElementById("timer").innerText = timeLeft.toString().padStart(2,'0');
+
+    timeLeft--;
+
+    if (timeLeft < 0) {
+      playBeep();
+      current++;
+      if (current >= intervals.length) {
+        current = 0;
+        roundCount++;
+        if (roundCount > totalRounds) {
+          clearInterval(timer);
+          document.getElementById("phase").innerText = "DONE!";
+          document.getElementById("timer").innerText = "00";
+          running = false;
+          return;
+        }
+      }
+      timeLeft = intervals[current].duration;
+    }
+  }, 1000);
+}
+
+function reset() {
+  clearInterval(timer);
+  current = 0;
+  roundCount = 0;
+  running = false;
+  document.getElementById("phase").innerText = "Ready?";
+  document.getElementById("timer").innerText = "00";
+}
+
+function playBeep() {
+  const beep = document.getElementById("beep");
+  beep.currentTime = 0;
+  beep.play();
+}
+</script>
+
+</body>
+</html>
